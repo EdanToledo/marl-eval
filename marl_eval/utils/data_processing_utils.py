@@ -150,6 +150,8 @@ def get_and_aggregate_data_single_task(
 def data_process_pipeline(  # noqa: C901
     raw_data: Dict[str, Dict[str, Any]],
     metrics_to_normalize: List[str],
+    custom_min: Dict[str, Dict[str, float]] = {},
+    custom_max: Dict[str, Dict[str, float]] = {},
 ) -> Dict[str, Dict[str, Any]]:
     """Function for processing raw input experiment data.
 
@@ -159,6 +161,14 @@ def data_process_pipeline(  # noqa: C901
         metrics_to_normalize: A list of metric names for metrics that should
             be min/max normalised. These metric names should match the names as
             given in the raw dataset.
+        custom_min (optional): Dictionary containing custom global minimum values
+            for normalisation. This is a nested dictionary where the keys are
+            task names and the values are dictionaries containing metric names
+            and custom minimum values.
+        custom_max (optional): Dictionary containing custom global maximum values
+            for normalisation. This is a nested dictionary where the keys are
+            task names and the values are dictionaries containing metric names
+            and custom maximum values.
 
     Returns:
         processed_data: Dictionary containing processed experiment data where relevant
@@ -254,6 +264,17 @@ def data_process_pipeline(  # noqa: C901
                                         metric_global_max = metric_min_max_info[metric][
                                             "global_max"
                                         ]
+                                        # Use the custom min or max if given
+                                        if (
+                                            task in custom_min.keys()
+                                            and metric in custom_min[task].keys()
+                                        ):
+                                            metric_global_min = custom_min[task][metric]
+                                        if (
+                                            task in custom_max.keys()
+                                            and metric in custom_max[task].keys()
+                                        ):
+                                            metric_global_max = custom_max[task][metric]
                                         normed_metric_array = (
                                             metric_array - metric_global_min
                                         ) / (
